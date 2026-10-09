@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { apiPost } from "@/lib/api";
+
 import {
   GraduationCap,
   Building2,
@@ -1182,10 +1184,31 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
   }, [focusArea]);
 
   const handleSave = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSaving(false);
+  setSaving(true);
+
+  try {
+    const result = await apiPost("/students/", {
+      name: profile.name,
+      email: profile.email,
+      branch: profile.branch,
+      cgpa: Number(profile.cgpa),
+      skills: profile.skills.filter((skill) => skill.trim() !== ""),
+      projects: profile.projects.filter((project) => project.trim() !== "").length,
+      certifications: profile.certifications.filter((cert) => cert.trim() !== "").length,
+      aptitude_score: 0,
+      interview_score: 0,
+    });
+
+    console.log("Student saved:", result);
+    alert("Student profile saved successfully!");
     setIsEditing(false);
+    
+  } catch (error) {
+    console.error("Save failed:", error);
+    alert("Could not save profile. Check whether the backend is running.");
+  } finally {
+    setSaving(false);
+  }
   };
 
   const updateField = (field: keyof typeof profile, value: string) => {
