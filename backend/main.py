@@ -3,6 +3,7 @@ from routes.students import router as students_router
 from routes.jobs import router as jobs_router
 from routes.matches import router as matches_router
 from fastapi.middleware.cors import CORSMiddleware
+from routes.ai import router as ai_router
 
 app = FastAPI(title="CAMPUSLINK API")
 
@@ -31,3 +32,4 @@ def health():
 app.include_router(students_router)
 app.include_router(jobs_router)
 app.include_router(matches_router)
+app.include_router(ai_router)

@@ -1,0 +1,34 @@
+{
+  "ML Engineer": {
+    "required_skills": ["Python", "Machine Learning", "SQL", "Statistics", "Pandas", "NumPy", "Scikit-learn", "Git"],
+    "important_skills": ["Deep Learning", "TensorFlow", "PyTorch", "Docker"]
+  },
+  "Software Developer": {
+    "required_skills": ["Python", "Java", "JavaScript", "SQL", "Git"],
+    "important_skills": ["React", "Next.js", "Docker"]
+  },
+  "Software Engineer": {
+    "required_skills": ["Data Structures", "Algorithms", "Object-Oriented Programming", "SQL", "Git"],
+    "important_skills": ["Python", "Java", "REST API", "Docker"]
+  },
+  "Web Developer": {
+    "required_skills": ["HTML", "CSS", "JavaScript", "Git"],
+    "important_skills": ["React", "TypeScript", "Next.js", "UI/UX"]
+  },
+  "Frontend Developer": {
+    "required_skills": ["HTML", "CSS", "JavaScript", "React", "Git"],
+    "important_skills": ["TypeScript", "Next.js", "UI/UX"]
+  },
+  "Backend Developer": {
+    "required_skills": ["Python", "SQL", "Git", "FastAPI"],
+    "important_skills": ["PostgreSQL", "Docker", "Kubernetes"]
+  },
+  "Data Scientist": {
+    "required_skills": ["Python", "SQL", "Statistics", "Pandas", "NumPy", "Scikit-learn"],
+    "important_skills": ["Machine Learning", "Matplotlib", "Deep Learning"]
+  },
+  "Cloud Engineer": {
+    "required_skills": ["Cloud Computing", "Linux", "Git", "Docker"],
+    "important_skills": ["AWS", "Azure", "Kubernetes", "Python"]
+  }
+}
