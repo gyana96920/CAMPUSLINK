@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { apiPost } from "@/lib/api";
+import { apiGet, apiPost } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 import {
   GraduationCap,
@@ -216,35 +217,35 @@ export default function Home() {
             <nav className="space-y-1.5">
               <SidebarLink
                 icon={<LayoutDashboard size={18} />}
-                label="📊 Dashboard"
+                label="ðŸ“Š Dashboard"
                 active={recruiterTab === "dashboard"}
                 activeClass="bg-orange-600/20 text-orange-300 border-orange-500/30"
                 onClick={() => setRecruiterTab("dashboard")}
               />
               <SidebarLink
                 icon={<Briefcase size={18} />}
-                label="💼 My Jobs"
+                label="ðŸ’¼ My Jobs"
                 active={recruiterTab === "myjobs"}
                 activeClass="bg-orange-600/20 text-orange-300 border-orange-500/30"
                 onClick={() => setRecruiterTab("myjobs")}
               />
               <SidebarLink
                 icon={<Users size={18} />}
-                label="👥 Candidates"
+                label="ðŸ‘¥ Candidates"
                 active={recruiterTab === "candidates"}
                 activeClass="bg-orange-600/20 text-orange-300 border-orange-500/30"
                 onClick={() => setRecruiterTab("candidates")}
               />
               <SidebarLink
                 icon={<Star size={18} />}
-                label="⭐ Shortlisted"
+                label="â­ Shortlisted"
                 active={recruiterTab === "shortlisted"}
                 activeClass="bg-orange-600/20 text-orange-300 border-orange-500/30"
                 onClick={() => setRecruiterTab("shortlisted")}
               />
               <SidebarLink
                 icon={<Award size={18} />}
-                label="🎓 Offers"
+                label="ðŸŽ“ Offers"
                 active={recruiterTab === "offers"}
                 activeClass="bg-orange-600/20 text-orange-300 border-orange-500/30"
                 onClick={() => setRecruiterTab("offers")}
@@ -342,7 +343,7 @@ export default function Home() {
                         key={i}
                         className="rounded-lg bg-white/5 border border-white/10 px-3 py-1 text-xs text-slate-300"
                       >
-                        ✓ {skill}
+                        âœ“ {skill}
                       </span>
                     ))}
                   </div>
@@ -482,49 +483,49 @@ export default function Home() {
             <nav className="space-y-1.5">
               <SidebarLink
                 icon={<LayoutDashboard size={18} />}
-                label="📊 Dashboard"
+                label="ðŸ“Š Dashboard"
                 active={placementTab === "dashboard"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("dashboard")}
               />
               <SidebarLink
                 icon={<Users size={18} />}
-                label="👨‍🎓 Students"
+                label="ðŸ‘¨â€ðŸŽ“ Students"
                 active={placementTab === "students"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("students")}
               />
               <SidebarLink
                 icon={<Building size={18} />}
-                label="🏢 Recruiters"
+                label="ðŸ¢ Recruiters"
                 active={placementTab === "recruiters"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("recruiters")}
               />
               <SidebarLink
                 icon={<Briefcase size={18} />}
-                label="💼 Placement Drives"
+                label="ðŸ’¼ Placement Drives"
                 active={placementTab === "drives"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("drives")}
               />
               <SidebarLink
                 icon={<Bot size={18} />}
-                label="🤖 AI Shortlists"
+                label="ðŸ¤– AI Shortlists"
                 active={placementTab === "shortlists"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("shortlists")}
               />
               <SidebarLink
                 icon={<Award size={18} />}
-                label="🎓 Offers"
+                label="ðŸŽ“ Offers"
                 active={placementTab === "offers"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("offers")}
               />
               <SidebarLink
                 icon={<BarChart3 size={18} />}
-                label="📈 Analytics"
+                label="ðŸ“ˆ Analytics"
                 active={placementTab === "analytics"}
                 activeClass="bg-purple-600/20 text-purple-300 border-purple-500/30"
                 onClick={() => setPlacementTab("analytics")}
@@ -623,7 +624,7 @@ export default function Home() {
                     <AlertTriangle size={15} /> Skill Gap
                   </p>
                   <p className="text-xs text-amber-200">
-                    ⚠ {selectedMatch.skillGap}
+                    âš  {selectedMatch.skillGap}
                   </p>
                 </div>
 
@@ -829,7 +830,7 @@ export default function Home() {
       </div>
 
       <footer className="relative z-10 mt-6 border-t border-white/10 px-6 py-5 text-center text-xs text-slate-600">
-        © 2026 CampusLink • AI Powered Placement Intelligence
+        Â© 2026 CampusLink â€¢ AI Powered Placement Intelligence
       </footer>
 
       {authModal.isOpen && authModal.portal && (
@@ -852,8 +853,58 @@ export default function Home() {
 ============================================================ */
 function StudentDashboard({ onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<StudentTab>("profile");
+  const [studentName, setStudentName] = useState("Student");
   const [profileFocus, setProfileFocus] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [studentDbId, setStudentDbId] = useState<number | null>(null);
+  
+
+useEffect(() => {
+  const loadStudentName = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const name =
+      user.user_metadata?.full_name ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "Student";
+
+    setStudentName(name);
+  };
+
+  loadStudentName();
+}, []);
+
+  useEffect(() => {
+    const loadStudentId = async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) return;
+
+      const { data, error } = await supabase
+        .from("students")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Student ID loading failed:", error);
+        return;
+      }
+
+      if (data) setStudentDbId(Number(data.id));
+    };
+
+    loadStudentId();
+  }, []);
+
 
   const navItems: { key: StudentTab; label: string }[] = [
     { key: "dashboard", label: "Dashboard" },
@@ -900,20 +951,16 @@ function StudentDashboard({ onLogout }: { onLogout: () => void }) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden lg:flex items-center gap-1.5 text-[10px] text-slate-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              REST API
-            </div>
 
             <button
               onClick={() => navigate("profile")}
               className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 pl-1 pr-3 py-1 hover:bg-white/10 transition"
             >
               <div className="h-7 w-7 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center font-bold text-cyan-300 text-xs">
-                R
+                {studentName.charAt(0).toUpperCase()}
               </div>
               <span className="text-xs font-medium text-slate-200 hidden sm:block">
-                Rahul
+                {studentName}
               </span>
             </button>
 
@@ -959,7 +1006,7 @@ function StudentDashboard({ onLogout }: { onLogout: () => void }) {
         {tab === "dashboard" && <DashboardTab onNavigate={navigate} />}
         {tab === "profile" && <ProfileTab focusArea={profileFocus} />}
         {tab === "skills" && <SkillsTab />}
-        {tab === "ai" && <AIPlacementTab />}
+        {tab === "ai" && <AIPlacementTab studentId={studentDbId} />}
         {tab === "jobs" && <JobsTab />}
         {tab === "calendar" && <CalendarTab />}
         {tab === "assessments" && <AssessmentsTab />}
@@ -989,7 +1036,7 @@ function DashboardTab({
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">
-            Welcome back, Rahul 👋
+            Welcome back, Student 👋
           </h2>
           <p className="text-xs text-slate-400">
             Here's your placement snapshot for this week.
@@ -1029,7 +1076,7 @@ function DashboardTab({
           label="Offers"
           value="1"
           color="amber"
-          trend="TCS • ₹7 LPA"
+          trend="TCS . â‚¹7 LPA"
         />
       </div>
 
@@ -1101,7 +1148,7 @@ function DashboardTab({
           onClick={() => onNavigate("ai")}
           className="rounded-lg bg-amber-500/20 border border-amber-500/40 px-3 py-1.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/30"
         >
-          Fix Now →
+          Fix Now â†’
         </button>
       </div>
     </div>
@@ -1112,6 +1159,7 @@ function DashboardTab({
    STUDENT TAB 2: PROFILE (with Coding Profiles + Centralized Edit)
 ============================================================ */
 function ProfileTab({ focusArea }: { focusArea?: string | null }) {
+  const [userId, setUserId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [highlightResume, setHighlightResume] = useState(false);
@@ -1119,56 +1167,23 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
   const resumeSectionRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [profile, setProfile] = useState({
-    name: "Rahul Sharma",
-    subtitle: "CSE • CGPA 8.6",
-    email: "rahul@college.edu",
-    phone: "+91 98765 43210",
-    branch: "CSE",
-    cgpa: "8.6",
-    github: "github.com/rahul-dev",
-    linkedin: "linkedin.com/in/rahul-dev",
-    skills: ["Java", "React", "Node.js", "SQL", "Python", "Git", "DSA"],
-    projects: [
-      "Campus Placement Portal",
-      "Realtime Chat App",
-      "Expense Tracker API",
-    ],
-    certifications: ["AWS Cloud Practitioner", "Oracle Java SE 11"],
-    codingProfiles: [
-      {
-        platform: "LeetCode",
-        handle: "rahul-dev",
-        stats: "450 problems • 1850 rating • Top 12%",
-        link: "https://leetcode.com/rahul-dev",
-      },
-      {
-        platform: "HackerRank",
-        handle: "rahul_dev",
-        stats: "5★ in Problem Solving • 5★ in Java",
-        link: "https://hackerrank.com/rahul_dev",
-      },
-      {
-        platform: "CodeChef",
-        handle: "rahul_cc",
-        stats: "3★ • 1720 rating",
-        link: "https://codechef.com/users/rahul_cc",
-      },
-      {
-        platform: "GitHub",
-        handle: "rahul-dev",
-        stats: "18 repos • 120+ contributions",
-        link: "https://github.com/rahul-dev",
-      },
-      {
-        platform: "Hackathons",
-        handle: "Smart India Hackathon 2025",
-        stats: "🏆 Winner — National Finalist",
-        link: "",
-      },
-    ] as CodingProfile[],
-    resumeName: "Rahul_Sharma_Resume.pdf",
-  });
+  
+const [profile, setProfile] = useState({
+  name: "",
+  subtitle: "",
+  email: "",
+  phone: "",
+  branch: "",
+  cgpa: "",
+  github: "",
+  linkedin: "",
+  skills: [] as string[],
+  projects: [] as string[],
+  certifications: [] as string[],
+  codingProfiles: [] as CodingProfile[],
+  resumeName: "",
+});
+
 
   useEffect(() => {
     if (focusArea === "resume") {
@@ -1183,33 +1198,124 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
     }
   }, [focusArea]);
 
-  const handleSave = async () => {
+  
+useEffect(() => {
+  const loadStudentProfile = async () => {
+    const { data: { user }, error: authError } =
+      await supabase.auth.getUser();
+
+    if (authError || !user) {
+      setUserId(null);
+      return;
+    }
+
+    setUserId(user.id);
+
+    const { data, error } = await supabase
+      .from("students")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Profile loading failed:", error);
+      return;
+    }
+
+    if (!data) {
+      setProfile((prev) => ({
+        ...prev,
+        name: user.user_metadata?.full_name || "",
+        email: user.email || "",
+      }));
+      return;
+    }
+
+    setProfile((prev) => ({
+      ...prev,
+      name: data.name || user.user_metadata?.full_name || "",
+      email: data.email || user.email || "",
+      branch: data.branch || "",
+      cgpa: data.cgpa != null ? String(data.cgpa) : "",
+      subtitle: data.branch
+        ? `${data.branch} • CGPA ${data.cgpa ?? ""}`
+        : "",
+      skills: Array.isArray(data.skills) ? data.skills : [],
+      projects: Array.isArray(data.projects_list) ? data.projects_list : [],
+      certifications: Array.isArray(data.certifications_list) ? data.certifications_list : [],
+      codingProfiles: Array.isArray(data.coding_profiles) ? data.coding_profiles : [],
+    }));
+  };
+
+  loadStudentProfile();
+}, []);
+
+
+  
+const handleSave = async () => {
   setSaving(true);
 
   try {
-    const result = await apiPost("/students/", {
-      name: profile.name,
-      email: profile.email,
-      branch: profile.branch,
-      cgpa: Number(profile.cgpa),
+    const { data: { user }, error: authError } =
+      await supabase.auth.getUser();
+
+    if (authError || !user) {
+      alert("Please log in before saving your profile.");
+      return;
+    }
+
+    const studentData = {
+      user_id: user.id,
+      name: profile.name.trim() || user.user_metadata?.full_name || "",
+      email: user.email || profile.email.trim(),
+      branch: profile.branch.trim(),
+      cgpa: Number(profile.cgpa) || 0,
       skills: profile.skills.filter((skill) => skill.trim() !== ""),
+      projects_list: profile.projects.filter((project) => project.trim() !== ""),
+      certifications_list: profile.certifications.filter((cert) => cert.trim() !== ""),
+      coding_profiles: profile.codingProfiles,
       projects: profile.projects.filter((project) => project.trim() !== "").length,
       certifications: profile.certifications.filter((cert) => cert.trim() !== "").length,
       aptitude_score: 0,
       interview_score: 0,
-    });
+    };
 
-    console.log("Student saved:", result);
+    const { data: existing, error: lookupError } = await supabase
+      .from("students")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+
+    const { error: saveError } = existing
+      ? await supabase
+          .from("students")
+          .update(studentData)
+          .eq("user_id", user.id)
+      : await supabase
+          .from("students")
+          .insert(studentData);
+
+    if (saveError) throw saveError;
+
+    setProfile((prev) => ({
+      ...prev,
+      name: studentData.name,
+      email: studentData.email,
+      subtitle: `${studentData.branch} • CGPA ${studentData.cgpa}`,
+    }));
+
     alert("Student profile saved successfully!");
     setIsEditing(false);
-    
   } catch (error) {
     console.error("Save failed:", error);
-    alert("Could not save profile. Check whether the backend is running.");
+    alert("Could not save profile. Check the database permissions and backend.");
   } finally {
     setSaving(false);
   }
-  };
+};
+
 
   const updateField = (field: keyof typeof profile, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));
@@ -1220,17 +1326,17 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
     if (!file) return;
 
     if (file.type !== "application/pdf") {
-      alert("❌ Only PDF files are allowed!");
+      alert("âŒ Only PDF files are allowed!");
       e.target.value = "";
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert("❌ File size must be under 5 MB.");
+      alert("âŒ File size must be under 5 MB.");
       e.target.value = "";
       return;
     }
     setProfile((prev) => ({ ...prev, resumeName: file.name }));
-    alert(`✅ ${file.name} uploaded successfully.`);
+    alert(`âœ… ${file.name} uploaded successfully.`);
   };
 
   /* ---------- Skills helpers ---------- */
@@ -1342,7 +1448,7 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
                   placeholder="Branch"
                   className="text-sm text-slate-300 bg-transparent outline-none border-b border-cyan-500/40 pb-0.5 w-24"
                 />
-                <span className="text-sm text-slate-400">•</span>
+                <span className="text-sm text-slate-400">.</span>
                 <input
                   value={profile.cgpa}
                   onChange={(e) => updateField("cgpa", e.target.value)}
@@ -1357,7 +1463,7 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
                 {profile.name}
               </h1>
               <p className="text-sm text-slate-400 mt-1">
-                {profile.branch} • CGPA {profile.cgpa}
+                {profile.branch} . CGPA {profile.cgpa}
               </p>
             </>
           )}
@@ -1459,7 +1565,7 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
                 {profile.resumeName}
               </p>
               <p className="text-[10px] text-slate-500">
-                PDF • Uploaded 12 days ago
+                PDF . Uploaded 12 days ago
               </p>
             </div>
           </div>
@@ -1715,7 +1821,7 @@ function ProfileTab({ focusArea }: { focusArea?: string | null }) {
                       onChange={(e) =>
                         updateCodingProfile(idx, "stats", e.target.value)
                       }
-                      placeholder="Stats (e.g. 450 problems • 1850 rating)"
+                      placeholder="Stats (e.g. 450 problems . 1850 rating)"
                       className="w-full text-xs text-slate-300 bg-white/5 border border-white/10 rounded-lg px-3 py-2 outline-none focus:border-cyan-400"
                     />
                     <input
@@ -1983,7 +2089,35 @@ function SkillCard({ skill }: { skill: Skill }) {
 /* ============================================================
    STUDENT TAB 4: AI PLACEMENT
 ============================================================ */
-function AIPlacementTab() {
+function AIPlacementTab({ studentId }: { studentId: number | null }) {
+    const [liveReadiness, setLiveReadiness] = useState<{
+    score: number;
+    level: string;
+  } | null>(null);
+
+  const [readinessError, setReadinessError] = useState("");
+
+  useEffect(() => {
+    if (studentId === null) return;
+
+    const loadReadiness = async () => {
+      try {
+        setReadinessError("");
+
+        const result = await apiPost(`/readiness/${studentId}`, {});
+
+        setLiveReadiness({
+          score: Number(result.score),
+          level: String(result.level ?? ""),
+        });
+      } catch (error) {
+        console.error("Readiness loading failed:", error);
+        setReadinessError("Unable to load live readiness score.");
+      }
+    };
+
+    loadReadiness();
+  }, [studentId]);
   const readiness = [
     { label: "Technical Skills", score: 88, color: "cyan" },
     { label: "Aptitude", score: 78, color: "purple" },
@@ -2011,14 +2145,12 @@ function AIPlacementTab() {
       reason: "Needed for senior SDE interviews",
     },
   ];
-  const overall = Math.round(
-    readiness.reduce((a, r) => a + r.score, 0) / readiness.length
-  );
+  const overall = liveReadiness?.score ?? null;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h2 className="text-2xl font-bold">🤖 AI Placement Analysis</h2>
+        <h2 className="text-2xl font-bold">ðŸ¤– AI Placement Analysis</h2>
         <p className="text-xs text-slate-400">
           Powered by profile data, assessment scores, and market demand signals.
         </p>
@@ -2031,13 +2163,14 @@ function AIPlacementTab() {
             </p>
             <div className="flex items-end gap-2 mt-2">
               <span className="text-5xl font-extrabold bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent">
-                {overall}
+                {overall ?? "—"}
               </span>
               <span className="text-slate-400 mb-1">/100</span>
             </div>
             <p className="text-xs text-slate-400 mt-2">
               You rank{" "}
               <span className="text-cyan-300 font-semibold">top 18%</span> among
+
               CSE students in your college.
             </p>
           </div>
@@ -2102,44 +2235,42 @@ function AIPlacementTab() {
    STUDENT TAB 5: JOBS
 ============================================================ */
 function JobsTab() {
-  const jobs: JobMatch[] = [
-    {
-      company: "TCS",
-      role: "Software Engineer",
-      package: "₹7 LPA",
-      location: "Bangalore",
-      matchScore: 94,
-      matched: ["Java", "SQL", "DSA"],
-      missing: ["Spring Boot"],
-      explanation:
-        "You meet 3 of 4 core requirements. Strong DSA + Java profile aligns well with TCS Digital.",
-      deadline: "10 Oct 2026",
-    },
-    {
-      company: "Infosys",
-      role: "Systems Engineer",
-      package: "₹6.5 LPA",
-      location: "Pune",
-      matchScore: 88,
-      matched: ["Python", "SQL", "Git"],
-      missing: ["Docker"],
-      explanation:
-        "Your backend skills cover most of the stack. Docker experience would push you to 96%.",
-      deadline: "14 Oct 2026",
-    },
-    {
-      company: "Deloitte",
-      role: "Analyst",
-      package: "₹8 LPA",
-      location: "Hyderabad",
-      matchScore: 82,
-      matched: ["SQL", "Communication", "Python"],
-      missing: ["Power BI"],
-      explanation:
-        "Strong analytical base. Power BI is the only missing piece for the analytics track.",
-      deadline: "18 Oct 2026",
-    },
-  ];
+  const [jobs, setJobs] = useState<JobMatch[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState("");
+
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const data = await apiGet("/jobs/");
+
+        const realJobs: JobMatch[] = (Array.isArray(data) ? data : []).map(
+          (job: any) => ({
+            company: job.company || job.company_name || "Employer",
+            role: job.title || "Job Opening",
+            package: job.package || job.salary || "Not specified",
+            location: job.location || "Not specified",
+            matchScore: 0,
+            matched: [],
+            missing: [],
+            explanation:
+              job.description || "No description provided by the employer.",
+            deadline: job.deadline || job.application_deadline || "Not specified",
+          })
+        );
+
+        setJobs(realJobs);
+      } catch (error) {
+        console.error("Loading jobs failed:", error);
+        setJobsError("Could not load jobs. Check that the backend is running.");
+      } finally {
+        setJobsLoading(false);
+      }
+    };
+
+    loadJobs();
+  }, []);
+
   const applications = [
     {
       company: "TCS",
@@ -2170,10 +2301,10 @@ function JobsTab() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h2 className="text-2xl font-bold">💼 Jobs & Applications</h2>
+        <h2 className="text-2xl font-bold">ðŸ’¼ Jobs & Applications</h2>
         <p className="text-xs text-slate-400">
           Every match shows exactly{" "}
-          <span className="text-cyan-300 font-semibold">why</span> you fit — no
+          <span className="text-cyan-300 font-semibold">why</span> you fit â€” no
           black boxes.
         </p>
       </div>
@@ -2181,9 +2312,23 @@ function JobsTab() {
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
           AI Job Matches
         </h3>
-        {jobs.map((job) => (
-          <JobMatchCard key={job.company} job={job} />
-        ))}
+        {jobsLoading && <p>Loading real jobs...</p>}
+
+        {!jobsLoading && jobsError && (
+          <p className="text-amber-300">{jobsError}</p>
+        )}
+
+        {!jobsLoading && !jobsError && jobs.length === 0 && (
+          <p className="text-slate-400">
+            No jobs found. Add job listings through the recruiter portal.
+          </p>
+        )}
+
+        {!jobsLoading &&
+          !jobsError &&
+          jobs.map((job, index) => (
+            <JobMatchCard key={`${job.company}-${index}`} job={job} />
+          ))}
       </div>
       <div className="rounded-2xl border border-white/10 bg-[#0b1224] p-6">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4">
@@ -2224,7 +2369,7 @@ function JobMatchCard({ job }: { job: JobMatch }) {
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            {job.company} • {job.location} • {job.package}
+            {job.company} . {job.location} . {job.package}
           </p>
         </div>
         <div className="text-right">
@@ -2235,7 +2380,7 @@ function JobMatchCard({ job }: { job: JobMatch }) {
       <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
           <p className="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold mb-2">
-            ✓ Matched
+            âœ“ Matched
           </p>
           <div className="flex flex-wrap gap-1.5">
             {job.matched.map((s) => (
@@ -2250,7 +2395,7 @@ function JobMatchCard({ job }: { job: JobMatch }) {
         </div>
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
           <p className="text-[10px] uppercase tracking-wider text-amber-400 font-semibold mb-2">
-            ⚠ Missing
+            âš  Missing
           </p>
           <div className="flex flex-wrap gap-1.5">
             {job.missing.map((s) => (
@@ -2268,7 +2413,7 @@ function JobMatchCard({ job }: { job: JobMatch }) {
         onClick={() => setExpanded(!expanded)}
         className="mt-3 flex items-center gap-1.5 text-xs font-medium text-cyan-400 hover:text-cyan-300"
       >
-        <Bot size={14} /> Why this match? {expanded ? "▲" : "▼"}
+        <Bot size={14} /> Why this match? {expanded ? "â–²" : "â–¼"}
       </button>
       {expanded && (
         <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs text-slate-300 leading-relaxed">
@@ -2335,9 +2480,9 @@ function CalendarTab() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h2 className="text-2xl font-bold">📅 Drive Calendar</h2>
+        <h2 className="text-2xl font-bold">ðŸ“… Drive Calendar</h2>
         <p className="text-xs text-slate-400">
-          Conflict-aware view — we automatically detect overlapping drives.
+          Conflict-aware view â€” we automatically detect overlapping drives.
         </p>
       </div>
       {conflicts.length > 0 && (
@@ -2355,7 +2500,7 @@ function CalendarTab() {
               <span className="font-semibold text-red-300">Deloitte</span> drives
               overlap on{" "}
               <span className="font-semibold">14 Oct 2026 @ 10:00 AM</span>.
-              Choose one — inform the placement cell.
+              Choose one â€” inform the placement cell.
             </p>
           </div>
         </div>
@@ -2395,7 +2540,7 @@ function CalendarTab() {
                   <h3 className="font-bold">{d.company}</h3>
                   {hasConflict && (
                     <span className="rounded-full bg-red-500/20 border border-red-500/40 px-2 py-0.5 text-[10px] font-semibold text-red-300">
-                      ⚠ Conflict
+                      âš  Conflict
                     </span>
                   )}
                 </div>
@@ -2444,7 +2589,7 @@ function AssessmentsTab() {
       trend: "up",
     },
     {
-      name: "Mock Interview — Technical",
+      name: "Mock Interview â€” Technical",
       score: 82,
       max: 100,
       date: "02 Oct 2026",
@@ -2458,7 +2603,7 @@ function AssessmentsTab() {
       trend: "stable",
     },
     {
-      name: "DSA Contest — Medium",
+      name: "DSA Contest â€” Medium",
       score: 85,
       max: 100,
       date: "25 Sep 2026",
@@ -2476,7 +2621,7 @@ function AssessmentsTab() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <div>
-        <h2 className="text-2xl font-bold">📈 Assessment History</h2>
+        <h2 className="text-2xl font-bold">ðŸ“ˆ Assessment History</h2>
         <p className="text-xs text-slate-400">
           Every test, interview, and communication score tracked over time.
         </p>
@@ -2507,13 +2652,13 @@ function AssessmentsTab() {
                 </td>
                 <td className="p-4">
                   {a.trend === "up" && (
-                    <span className="text-emerald-400 text-xs">▲ Improving</span>
+                    <span className="text-emerald-400 text-xs">â–² Improving</span>
                   )}
                   {a.trend === "down" && (
-                    <span className="text-red-400 text-xs">▼ Declining</span>
+                    <span className="text-red-400 text-xs">â–¼ Declining</span>
                   )}
                   {a.trend === "stable" && (
-                    <span className="text-slate-400 text-xs">● Stable</span>
+                    <span className="text-slate-400 text-xs">â— Stable</span>
                   )}
                 </td>
                 <td className="p-4 text-xs text-slate-400">{a.date}</td>
@@ -2738,7 +2883,7 @@ function MiniStat({
             : "text-slate-500"
         }`}
       >
-        {trend === "up" ? "▲" : trend === "down" ? "▼" : "●"} {trend}
+        {trend === "up" ? "â–²" : trend === "down" ? "â–¼" : "â—"} {trend}
       </p>
     </div>
   );
@@ -3451,7 +3596,7 @@ function ShortlistsView({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">🤖 AI Recommended Candidates</h2>
+        <h2 className="text-2xl font-bold">ðŸ¤– AI Recommended Candidates</h2>
         <p className="text-xs text-slate-400">
           Automated match scores based on candidate profile and job eligibility.
         </p>
@@ -3496,17 +3641,17 @@ function ShortlistsView({
 
 function OffersView() {
   const offers = [
-    { student: "Rahul", company: "TCS", package: "₹7 LPA", status: "Accepted" },
+    { student: "Rahul", company: "TCS", package: "â‚¹7 LPA", status: "Accepted" },
     {
       student: "Aman",
       company: "Infosys",
-      package: "₹6 LPA",
+      package: "â‚¹6 LPA",
       status: "Pending",
     },
     {
       student: "Priya",
       company: "Deloitte",
-      package: "₹8 LPA",
+      package: "â‚¹8 LPA",
       status: "Joined",
     },
   ];
@@ -3574,9 +3719,9 @@ function AnalyticsView() {
             Package Distribution
           </h3>
           <div className="space-y-3">
-            <BranchBar branch="3–5 LPA" percentage={40} color="bg-blue-500" />
-            <BranchBar branch="5–8 LPA" percentage={35} color="bg-purple-500" />
-            <BranchBar branch="8–12 LPA" percentage={18} color="bg-emerald-500" />
+            <BranchBar branch="3â€“5 LPA" percentage={40} color="bg-blue-500" />
+            <BranchBar branch="5â€“8 LPA" percentage={35} color="bg-purple-500" />
+            <BranchBar branch="8â€“12 LPA" percentage={18} color="bg-emerald-500" />
             <BranchBar branch="12+ LPA" percentage={7} color="bg-amber-500" />
           </div>
         </div>
@@ -3834,47 +3979,113 @@ function AuthModal({
   const [fullName, setFullName] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setErrorMsg("");
 
-    if (portal === "student" && mode === "login") {
-      if (email === "rahul" && password === "rahul123@") {
-        onLoginSuccess("student");
-        return;
-      } else {
-        setErrorMsg("Invalid credentials!");
-        return;
-      }
-    }
-
-    if (portal === "placement" && mode === "login") {
-      if (email === "sahoo@123" && password === "sahoo098") {
-        onLoginSuccess("placement");
-        return;
-      } else {
-        setErrorMsg("Invalid credentials!");
-        return;
-      }
-    }
-
-    if (portal === "recruiter" && mode === "login") {
-      if (email === "recruiter@123" && password === "recruiter098") {
-        onLoginSuccess("recruiter");
-        return;
-      } else {
-        setErrorMsg("Invalid credentials!" );
-        return;
-      }
-    }
-
-    alert(
-      `${
-        mode === "login" ? "Logging in" : "Signing up"
-      } as ${portal.toUpperCase()}...`
-    );
+  const cleanEmail = email.trim().toLowerCase();
+  console.log("Placement login check:", {
+  portal,
+  mode,
+  email: cleanEmail,
+  passwordLength: password.length,
+  });
+  
+  
+if (portal === "recruiter" && mode === "login") {
+  if (
+    cleanEmail === "recruiter123" &&
+    password.trim() === "Recruiter@123"
+  ) {
+    onLoginSuccess("recruiter");
     onClose();
+    return;
+  } else {
+    setErrorMsg("Invalid recruiter portal username or password.");
+    return;
+  }
+}
+
+  
+  if (portal === "placement" && mode === "login") {
+    console.log("Password match:", password.trim() === "Test123456");
+    if (
+      cleanEmail === "campus123" &&
+      password.trim() === "Test123456"
+    ) {
+      onLoginSuccess("placement");
+      onClose();
+      return;
+    } else {
+      setErrorMsg("Invalid placement portal email or password.");
+      return;
+    }
+  }
+
+
+  if (!cleanEmail.includes("@")) {
+    setErrorMsg("Please enter a valid email address.");
+    return;
+  }
+
+  try {
+    if (mode === "signup") {
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            portal,
+          },
+        },
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+        return;
+      }
+
+      if (data.session) {
+        onLoginSuccess(portal);
+        onClose();
+      } else {
+        setErrorMsg(
+          "Account created. Check your email for confirmation, then log in."
+        );
+        setMode("login");
+      }
+
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: cleanEmail,
+      password,
+    });
+
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+
+    const accountPortal = data.user.user_metadata?.portal;
+
+    if (accountPortal && accountPortal !== portal) {
+      await supabase.auth.signOut();
+      setErrorMsg("Please select the portal you registered with.");
+      return;
+    }
+
+    onLoginSuccess(portal);
+    onClose();
+  }
+  catch {
+    setErrorMsg("Unable to connect. Please try again.");
+  }
   };
+
 
   const portalThemes = {
     student: {
@@ -3984,7 +4195,7 @@ function AuthModal({
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Enter your password"
                 className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 outline-none focus:border-cyan-400"
               />
             </div>
